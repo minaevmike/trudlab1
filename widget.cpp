@@ -13,6 +13,7 @@ Widget::Widget(QWidget *parent)
     a1 = a2 = 1;
     botTemp = 100;
     leftTemp = 200;
+    yOffset = 500;
     modulateTime = 15;
     module = false;
     tempLabel = new QLabel(this);
@@ -49,7 +50,7 @@ void Widget::mousePressEvent(QMouseEvent *event){
     int size = T.size();
     double x = event->pos().x();
     double y = event->pos().y();
-    y = 700 - y;
+    y = yOffset - y;
     int i = 0, j = 0;
     x /= scale;
     y /= scale;
@@ -73,7 +74,7 @@ void Widget::mousePressEvent(QMouseEvent *event){
 
 void Widget::paintEvent(QPaintEvent *){
     QPainter p(this);
-    p.translate(0, 700);
+    p.translate(0, yOffset);
     p.scale(1, -1);
     //p.drawLine(0,0,100,100);
     drawFigure(&p);
@@ -262,7 +263,7 @@ void Widget::calcBackgound(){
         T = nextT;
         time += dt;
         repaint();
-        QThread::msleep(2);
+        //QThread::msleep(2);
    }
 
 }

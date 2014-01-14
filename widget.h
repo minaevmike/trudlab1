@@ -52,6 +52,7 @@ private:
     int leftSide, botSide, rightSide, topSide;
     double dx, dy, dt, a1, a2;
     int n;
+    int yOffset;
     bool module;
     QLabel *tempLabel;
     QPushButton *calcButton;
