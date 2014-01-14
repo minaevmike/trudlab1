@@ -212,10 +212,18 @@ void Widget::calc(){
    //calcThread.start();
    calcButton->setDisabled(true);
    calcButton->setText("...");
-   calcThread.start();
+   repaint();
+   /*calcThread.start();
    calcThread.quit();
    calcButton->setText("Modulate");
-   calcButton->setDisabled(false);
+   calcButton->setDisabled(false);*/
+    QTimer *timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(repaint()));
+    timer->start(1);
+    std::thread t(&Widget::calcBackgound, this);
+    t.join();
+    calcButton->setText("Modulate");
+    calcButton->setDisabled(false);
 }
 
 void Widget::calcBackgound(){
@@ -262,9 +270,17 @@ void Widget::calcBackgound(){
         }
         T = nextT;
         time += dt;
+<<<<<<< HEAD
         repaint();
         //QThread::msleep(2);
+=======
+        //repaint();
+        QThread::msleep(2);
+>>>>>>> 63ff88e68d1ceb58be86022830ab4656d5a48562
    }
+    //calcButton->setText("Modulate");
+    //calcButton->setDisabled(false);
+    std::cout << "FINISH" << std::endl;
 
 }
 

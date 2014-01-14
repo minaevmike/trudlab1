@@ -17,3 +17,5 @@ SOURCES += main.cpp\
 
 HEADERS  += widget.h \
     calcthread.h
+
+CONFIG += c++11
