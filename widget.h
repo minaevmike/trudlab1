@@ -17,6 +17,8 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <thread>
+#include <QTimer>
 
 enum pointCondition{
     INSIDE,
