@@ -19,6 +19,7 @@
 #include <QVBoxLayout>
 #include <thread>
 #include <QTimer>
+#include <mutex>
 
 enum pointCondition{
     INSIDE,
@@ -47,6 +48,7 @@ public:
     pointCondition condition(double x, double y);
     void printTMatrix();
     QThread calcThread;
+    std::mutex tempMutex;
 private:
     QVector<QVector<double> > T;
     int scale;

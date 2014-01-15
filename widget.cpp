@@ -87,6 +87,7 @@ void Widget::paintEvent(QPaintEvent *){
 }
 
 void Widget::drawTempMap(QPainter *p){
+    tempMutex.lock();
     int size = T.size();
     double min = T[1][1], max = T[1][1];
     for(int i = 0; i < size; ++i){
@@ -110,6 +111,7 @@ void Widget::drawTempMap(QPainter *p){
             }
         }
     }
+    tempMutex.unlock();
 }
 
 void Widget::printTMatrix(){
@@ -221,15 +223,19 @@ void Widget::calc(){
     connect(timer, SIGNAL(timeout()), this, SLOT(repaint()));
     timer->start(1);
     std::thread t(&Widget::calcBackgound, this);
-    t.join();
+//    t.join();
+
+    t.detach();
     calcButton->setText("Modulate");
     calcButton->setDisabled(false);
 }
 
 void Widget::calcBackgound(){
     module = true;
+    tempMutex.lock();
     int size = T.size();
     QVector<QVector<double> > nextT = T;
+    tempMutex.unlock();
     double time = 0;
     while(time < modulateTime){
         for(int i = 0;i < n; ++i){
@@ -268,15 +274,10 @@ void Widget::calcBackgound(){
                 }
             }
         }
+        tempMutex.lock();
         T = nextT;
+        tempMutex.unlock();
         time += dt;
-<<<<<<< HEAD
-        repaint();
-        //QThread::msleep(2);
-=======
-        //repaint();
-        QThread::msleep(2);
->>>>>>> 63ff88e68d1ceb58be86022830ab4656d5a48562
    }
     //calcButton->setText("Modulate");
     //calcButton->setDisabled(false);
