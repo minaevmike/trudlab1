@@ -20,6 +20,8 @@
 #include <thread>
 #include <QTimer>
 #include <mutex>
+#include <vector>
+#include <QPalette>
 
 enum pointCondition{
     INSIDE,
@@ -44,13 +46,15 @@ public:
     void drawFigure(QPainter *p);
     void drawPoints(QPainter *p);
     void drawTempMap(QPainter *p);
+    void drawBorder(QPainter *p);
     QColor tempToColor(double temp, double min, double max);
     pointCondition condition(double x, double y);
     void printTMatrix();
     QThread calcThread;
     std::mutex tempMutex;
 private:
-    QVector<QVector<double> > T;
+    std::vector<std::vector<double> > T;
+    //QVector<QVector<double> > T;
     int scale;
     int botTemp, leftTemp;
     int leftSide, botSide, rightSide, topSide;

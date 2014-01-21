@@ -54,7 +54,7 @@ void Widget::mousePressEvent(QMouseEvent *event){
     int i = 0, j = 0;
     x /= scale;
     y /= scale;
-    std::cout << x << " " << y << std::endl;
+    //std::cout << x << " " << y << std::endl;
     if( condition(x, y) != OUTSIDE){
         for(int m = 0; m < size; ++m){
             if( m * dx < x && (m+1) * dx >= x){
@@ -64,10 +64,13 @@ void Widget::mousePressEvent(QMouseEvent *event){
                 j = m;
             }
         }
-        std::cout << i << " " << j << std::endl;
-        tempLabel->setWordWrap(true);
-        tempLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
+        //std::cout << i << " " << j << std::endl;
+        //tempLabel->setWordWrap(true);
+        //tempLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
         tempLabel->setText(QString("Temperature is ") + QString::number(T[i][j]));
+    }
+    else {
+        tempLabel->setText("Outside of figure");
     }
     //std::cout << x << " " << y << std::endl;
 }
@@ -80,6 +83,7 @@ void Widget::paintEvent(QPaintEvent *){
     drawFigure(&p);
     if(module){
         drawTempMap(&p);
+        drawBorder(&p);
     }
     else{
         drawPoints(&p);
@@ -230,11 +234,35 @@ void Widget::calc(){
     calcButton->setDisabled(false);
 }
 
+void Widget::drawBorder(QPainter *p){
+    QColor color = QWidget::palette().color(QWidget::backgroundRole());
+    QPen pen;
+    pen.setColor(color);
+    int rectWidth = 20;
+    //top rectangle
+    p->fillRect(0, leftSide * scale + 1, (topSide + dx) * scale, rectWidth, pen.brush());
+    //bot rectangle
+    p->fillRect(0, -rectWidth,(botSide + dx) * scale,  rectWidth - 1, pen.brush());
+    //right rectagle
+    p->fillRect(botSide * scale + 1, 0, rectWidth, leftSide * scale, pen.brush());
+    //oblique rectangle
+    p->translate(topSide * scale, leftSide * scale);
+    p->rotate(-45);
+    p->fillRect(0, 0, sqrt(pow(leftSide - rightSide,2) + pow(topSide - botSide, 2)) * scale, rectWidth, pen.brush());
+    //reseting transform
+    p->resetTransform();
+    //update transform to old
+    p->translate(0, yOffset);
+    p->scale(1, -1);
+
+}
+
 void Widget::calcBackgound(){
     module = true;
     tempMutex.lock();
     int size = T.size();
-    QVector<QVector<double> > nextT = T;
+    std::vector<std::vector<double> > nextT = T;
+   // QVector<QVector<double> > nextT = T;
     tempMutex.unlock();
     double time = 0;
     while(time < modulateTime){
@@ -281,7 +309,7 @@ void Widget::calcBackgound(){
    }
     //calcButton->setText("Modulate");
     //calcButton->setDisabled(false);
-    std::cout << "FINISH" << std::endl;
+    //std::cout << "FINISH" << std::endl;
 
 }
 
