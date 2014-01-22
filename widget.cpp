@@ -15,6 +15,7 @@ Widget::Widget(QWidget *parent)
     leftTemp = 200;
     yOffset = 500;
     modulateTime = 15;
+    startTemp = 0;
     module = false;
     tempLabel = new QLabel(this);
     QHBoxLayout *layout = new QHBoxLayout;
@@ -22,6 +23,7 @@ Widget::Widget(QWidget *parent)
     calcButton = new QPushButton("Modulate", this);
     connect(&calcThread, SIGNAL(started()), this, SLOT(calcBackgound()));
     connect(calcButton,SIGNAL(clicked()), this, SLOT(calc()));
+    connect(this, SIGNAL(finishedM()), this, SLOT(modulationFinished()));
     //calcButton->move((int)this->size().width()/ 2, calcButton->pos().y());
     layout->addWidget(calcButton);
     layout->addWidget(tempLabel);
@@ -34,15 +36,15 @@ Widget::Widget(QWidget *parent)
     for(int i = 0; i < n; i++){
         T[i].resize(n);
     }
+    for(int i = 0; i < n; ++i){
+        for(int j = 0; j < n; ++j)
+            T[i][j] = startTemp;
+    }
     for(int i = 0;i < n; ++i){
         T[0][i] = leftTemp;
         T[i][0] = botTemp;
     }
-    /*QColor color;
-    color.setHsvF(0.00000001, 1, 1);
-    qDebug() << color.name();
-    color.setHsvF(0.5, 1, 1);
-    qDebug() << color.name();*/
+    timer.start();
     update();
 }
 
@@ -54,7 +56,6 @@ void Widget::mousePressEvent(QMouseEvent *event){
     int i = 0, j = 0;
     x /= scale;
     y /= scale;
-    //std::cout << x << " " << y << std::endl;
     if( condition(x, y) != OUTSIDE){
         for(int m = 0; m < size; ++m){
             if( m * dx < x && (m+1) * dx >= x){
@@ -64,22 +65,21 @@ void Widget::mousePressEvent(QMouseEvent *event){
                 j = m;
             }
         }
-        //std::cout << i << " " << j << std::endl;
-        //tempLabel->setWordWrap(true);
-        //tempLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
         tempLabel->setText(QString("Temperature is ") + QString::number(T[i][j]));
     }
     else {
         tempLabel->setText("Outside of figure");
     }
-    //std::cout << x << " " << y << std::endl;
+}
+
+void Widget::modulationFinished(){
+    QMessageBox::information(this, "Finish", "Modulation has finished. It take's " + QString::number((double)timer.elapsed()/1000) + " s to calclulate.");
 }
 
 void Widget::paintEvent(QPaintEvent *){
     QPainter p(this);
     p.translate(0, yOffset);
     p.scale(1, -1);
-    //p.drawLine(0,0,100,100);
     drawFigure(&p);
     if(module){
         drawTempMap(&p);
@@ -121,15 +121,15 @@ void Widget::drawTempMap(QPainter *p){
 void Widget::printTMatrix(){
     int size = T.size();
     for(int i = 0; i < size; ++i){
-            for(int j = 0; j < size; ++j){
-                double x = i * dx;
-                double y = j * dy;
-                if(condition(x, y) != OUTSIDE){
-                    std::cout << std::setw(4) << T[i][j] << " ";
-                }
+        for(int j = 0; j < size; ++j){
+            double x = i * dx;
+            double y = j * dy;
+            if(condition(x, y) != OUTSIDE){
+                std::cout << std::setw(4) << T[i][j] << " ";
             }
-            std::cout << std::endl;
         }
+        std::cout << std::endl;
+    }
 }
 
 QColor Widget::tempToColor(double temp, double min, double max){
@@ -213,22 +213,13 @@ void Widget::drawPoints(QPainter *p){
 }
 
 void Widget::calc(){
-   //moveToThread(&calcThread);
-   //connect(&calcThread, SIGNAL(started()), this, SLOT(calcBackgound()));
-   //calcThread.start();
-   calcButton->setDisabled(true);
-   calcButton->setText("...");
-   repaint();
-   /*calcThread.start();
-   calcThread.quit();
-   calcButton->setText("Modulate");
-   calcButton->setDisabled(false);*/
+    calcButton->setDisabled(true);
+    calcButton->setText("...");
+    repaint();
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(repaint()));
     timer->start(1);
     std::thread t(&Widget::calcBackgound, this);
-//    t.join();
-
     t.detach();
     calcButton->setText("Modulate");
     calcButton->setDisabled(false);
@@ -262,7 +253,6 @@ void Widget::calcBackgound(){
     tempMutex.lock();
     int size = T.size();
     std::vector<std::vector<double> > nextT = T;
-   // QVector<QVector<double> > nextT = T;
     tempMutex.unlock();
     double time = 0;
     while(time < modulateTime){
@@ -306,10 +296,8 @@ void Widget::calcBackgound(){
         T = nextT;
         tempMutex.unlock();
         time += dt;
-   }
-    //calcButton->setText("Modulate");
-    //calcButton->setDisabled(false);
-    //std::cout << "FINISH" << std::endl;
+    }
+    emit finishedM();
 
 }
 

@@ -22,6 +22,9 @@
 #include <mutex>
 #include <vector>
 #include <QPalette>
+#include <QMessageBox>
+#include <QTime>
+
 
 enum pointCondition{
     INSIDE,
@@ -54,7 +57,7 @@ public:
     std::mutex tempMutex;
 private:
     std::vector<std::vector<double> > T;
-    //QVector<QVector<double> > T;
+    QTime timer;
     int scale;
     int botTemp, leftTemp;
     int leftSide, botSide, rightSide, topSide;
@@ -65,9 +68,13 @@ private:
     QLabel *tempLabel;
     QPushButton *calcButton;
     double modulateTime;
+    double startTemp;
 private slots:
     void calcBackgound();
     void calc();
+    void modulationFinished();
+signals:
+    void finishedM();
 };
 
 #endif // WIDGET_H
