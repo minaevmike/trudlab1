@@ -44,7 +44,6 @@ Widget::Widget(QWidget *parent)
         T[0][i] = leftTemp;
         T[i][0] = botTemp;
     }
-    timer.start();
     update();
 }
 
@@ -216,6 +215,7 @@ void Widget::calc(){
     calcButton->setDisabled(true);
     calcButton->setText("...");
     repaint();
+    timer.start();
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(repaint()));
     timer->start(1);
