@@ -3,8 +3,10 @@
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
 {
-    dx = dy = 0.25;
-    dt = dx * dx * dx / 2;
+    dx = 0.2;
+    dy = 0.1;
+    double minD = std::min(dx, dy);
+    dt = pow(minD, 3) / 2;
     scale = 60;
     leftSide = 6;
     topSide = 5;
@@ -14,7 +16,7 @@ Widget::Widget(QWidget *parent)
     botTemp = 100;
     leftTemp = 200;
     yOffset = 500;
-    modulateTime = 15;
+    modulateTime = 20;
     startTemp = 0;
     module = false;
     tempLabel = new QLabel(this);
@@ -31,7 +33,7 @@ Widget::Widget(QWidget *parent)
     l->addStretch(0);
     l->addLayout(layout);
     this->setLayout(l);
-    n  = (std::max(std::max(leftSide, topSide), std::max(rightSide, botSide)) + 1) / dx + 1;
+    n  = (std::max(std::max(leftSide, topSide), std::max(rightSide, botSide)) + 1) / minD + 1;
     T.resize(n);
     for(int i = 0; i < n; i++){
         T[i].resize(n);
@@ -72,6 +74,17 @@ void Widget::mousePressEvent(QMouseEvent *event){
 }
 
 void Widget::modulationFinished(){
+    int size = T.size();
+    for(int i = 0; i < size; ++i){
+        for(int j = 0; j < size; j++){
+            double y = i * dx;
+            double x = j * dy;
+            if(condition(x, y) != OUTSIDE){
+                std::cout <<std::setprecision(4) << T[j][i] << " ";
+            }
+        }
+        std::cout << std::endl;
+    }
     QMessageBox::information(this, "Finish", "Modulation has finished. It take's " + QString::number((double)timer.elapsed()/1000) + " s to calclulate.");
 }
 
@@ -218,7 +231,7 @@ void Widget::calc(){
     timer.start();
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(repaint()));
-    timer->start(1);
+    timer->start(3);
     std::thread t(&Widget::calcBackgound, this);
     t.detach();
     calcButton->setText("Modulate");
@@ -297,6 +310,7 @@ void Widget::calcBackgound(){
         tempMutex.unlock();
         time += dt;
     }
+    printTMatrix();
     emit finishedM();
 
 }
